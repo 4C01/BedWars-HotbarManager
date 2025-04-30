@@ -89,9 +89,6 @@ public final class HotbarManager extends JavaPlugin {
             case "v1_20_r4":
                 versionSupport = new v1_20_R4();
                 break;
-            case "v1_21_r1":
-                versionSupport = new v1_21_R1();
-                break;
         }
     }
 
