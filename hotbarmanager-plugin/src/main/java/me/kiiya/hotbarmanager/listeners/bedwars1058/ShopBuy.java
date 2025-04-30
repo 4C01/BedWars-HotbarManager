@@ -35,18 +35,18 @@ public class ShopBuy implements Listener {
         VersionSupport vs = HotbarManager.getBW1058Api().getVersionSupport();
         Player p = e.getBuyer();
 
-        // 提前检查processing状态
+        // check processing status
         if (processing.contains(p.getUniqueId())) return;
         processing.add(p.getUniqueId());
 
         try {
-            // MAIN VARIABLES - 移到try内部
+            // MAIN VARIABLES
             PlayerInventory inv = p.getInventory();
             IHotbarPlayer hp = HotbarManager.getAPI().getHotbarPlayer(p);
             Category cat = HotbarUtils.getCategoryFromString(e.getCategoryContent().getIdentifier());
             List<Category> hotbar = hp.getHotbarAsList();
 
-            // 提前终止无效流程
+
             if (cat == null || cat == Category.NONE || !hotbar.contains(cat)) {
                 return;
             }
@@ -57,7 +57,7 @@ public class ShopBuy implements Listener {
             String identifier = cc.getIdentifier();
             ShopCache cache = ShopCache.getShopCache(p.getUniqueId());
 
-            // 提前获取缓存项并检查
+
             ShopCache.CachedItem cachedItem = cache.getCachedItem(cc);
             if (cachedItem == null) {
                 debug("CachedItem is null for " + identifier);
@@ -67,19 +67,19 @@ public class ShopBuy implements Listener {
             IContentTier upgradableContent = cc.getContentTiers().get(cachedItem.getTier()-1);
             ItemStack item = Utility.formatItemStack(upgradableContent.getBuyItemsList().get(0).getItemStack(), t);
 
-            // 提前计算金钱相关
+            // calc currency
             Material currency = upgradableContent.getCurrency();
             int price = upgradableContent.getPrice();
             int totalPlayerMoney = CategoryContent.calculateMoney(p, currency);
 
-            // 优化循环处理
+            // item slots processing
             for (int i = 0; i < 9; i++) {
                 if (hotbar.get(i) != cat) continue;
 
                 ItemStack itemSlot = inv.getItem(i);
                 boolean slotEmpty = itemSlot == null || itemSlot.getType() == Material.AIR;
 
-                // 处理武器升级逻辑
+                // if on purchasing item is sword
                 if (BedWars.nms.isSword(item)) {
                     handleSwordUpgrade(p, inv, i, item, itemSlot, t, slotEmpty);
                     completePurchase(p, cc, cache, item, currency, price, totalPlayerMoney, identifier,inv);
@@ -87,7 +87,7 @@ public class ShopBuy implements Listener {
                     return;
                 }
 
-                // 处理工具/永久物品
+                // tools
                 if (!slotEmpty && (BedWars.nms.isTool(itemSlot) || itemSlot.getType() == Material.SHEARS)) {
                     if (Utility.getItemCategory(itemSlot) == cat &&
                             !vs.getShopUpgradeIdentifier(itemSlot).equalsIgnoreCase(identifier)) {
@@ -95,7 +95,7 @@ public class ShopBuy implements Listener {
                     }
                 }
 
-                // 处理物品替换/堆叠
+                // stack item or replace item
                 if (!slotEmpty) {
                     if(handleItemReplacement(p, inv, i, item, itemSlot, vs, identifier, cat)){
                         completePurchase(p, cc, cache, item, currency, price, totalPlayerMoney, identifier,inv);
@@ -105,7 +105,7 @@ public class ShopBuy implements Listener {
                     continue;
                 }
 
-                // 处理空槽位
+                // empty slot
                 handleEmptySlot(p, inv, i, item, cc, vs, identifier, t);
                 completePurchase(p, cc, cache, item, currency, price, totalPlayerMoney, identifier,inv);
                 e.setCancelled(true);
@@ -118,7 +118,6 @@ public class ShopBuy implements Listener {
         }
     }
 
-// 以下是提取出来的方法（保持原有逻辑不变）
 
     private void handleSwordUpgrade(Player p, PlayerInventory inv, int slot, ItemStack newItem,
                                     ItemStack oldItem, ITeam team, boolean slotEmpty) {
@@ -143,7 +142,7 @@ public class ShopBuy implements Listener {
 
     private boolean handleItemReplacement(Player p, PlayerInventory inv, int slot, ItemStack newItem,
                                           ItemStack oldItem, VersionSupport vs, String identifier, Category category) {
-        // 相同identifier替换
+        // replace same identifier
         if (vs.getShopUpgradeIdentifier(oldItem) != null &&
                 vs.getShopUpgradeIdentifier(oldItem).equals(identifier)) {
             inv.setItem(slot, vs.setShopUpgradeIdentifier(newItem, identifier));
@@ -151,7 +150,7 @@ public class ShopBuy implements Listener {
             return true;
         }
 
-        // 堆叠处理
+        // stacking item
         if (newItem.getType() == oldItem.getType() &&
                 newItem.getDurability() == oldItem.getDurability()) {
             int total = oldItem.getAmount() + newItem.getAmount();
@@ -165,6 +164,7 @@ public class ShopBuy implements Listener {
             p.updateInventory();
             return true;
         }
+        // if same category but not same type,skip it
         if (Utility.getItemCategory(oldItem) != category) {
             return false;
         }
@@ -195,8 +195,7 @@ public class ShopBuy implements Listener {
                                   Material currency, int price, int totalMoney, String identifier,PlayerInventory inv) {
         CategoryContent.takeMoney(p, currency, price);
         Sounds.playSound("shop-bought", p);
-
-        // 金钱校验逻辑保持不变
+        
         int finalMoney = CategoryContent.calculateMoney(p, currency);
         if (finalMoney < (totalMoney - price)) {
             inv.addItem(new ItemStack(currency, (totalMoney - price) - finalMoney));
@@ -204,7 +203,6 @@ public class ShopBuy implements Listener {
             inv.removeItem(new ItemStack(currency, finalMoney - (totalMoney - price)));
         }
 
-        // 发送消息逻辑
         p.sendMessage(Utility.getMsg(p, "shop-new-purchase")
                 .replace("{prefix}", Utility.getMsg(p, "prefix"))
                 .replace("{item}", Utility.getMsg(p, "shop-items-messages." + identifier.split("\\.")[0] + ".content-item-" + identifier.split("\\.")[2] + "-name"))
