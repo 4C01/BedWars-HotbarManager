@@ -72,7 +72,7 @@ public class InventoryListener implements Listener {
             return;
         }
 
-        if (e.getInventory() != clickInv || clickInv == pInv) {
+        if (e.getInventory() != clickInv) {
             e.setCursor(new ItemStack(Material.AIR));
             e.setCancelled(true);
             return;
