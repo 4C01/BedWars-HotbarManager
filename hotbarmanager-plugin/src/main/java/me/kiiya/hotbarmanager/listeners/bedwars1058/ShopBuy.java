@@ -142,7 +142,7 @@ public class ShopBuy implements Listener {
     }
 
     private boolean handleItemReplacement(Player p, PlayerInventory inv, int slot, ItemStack newItem,
-                                          ItemStack oldItem, VersionSupport vs, String identifier, Category cc) {
+                                          ItemStack oldItem, VersionSupport vs, String identifier, Category category) {
         // 相同identifier替换
         if (vs.getShopUpgradeIdentifier(oldItem) != null &&
                 vs.getShopUpgradeIdentifier(oldItem).equals(identifier)) {
@@ -165,7 +165,7 @@ public class ShopBuy implements Listener {
             p.updateInventory();
             return true;
         }
-        if (Utility.getItemCategory(oldItem) != cc) {
+        if (Utility.getItemCategory(oldItem) != category) {
             return false;
         }
         inv.setItem(slot, newItem);
