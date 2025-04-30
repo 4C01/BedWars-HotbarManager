@@ -1,10 +1,5 @@
 package me.kiiya.hotbarmanager.listeners.bedwars1058;
 
-import com.andrei1058.bedwars.shop.ShopManager;
-import com.andrei1058.bedwars.shop.quickbuy.PlayerQuickBuyCache;
-import com.andrei1058.bedwars.shop.quickbuy.QuickBuyElement;
-import com.andrei1058.bedwars.shop.main.ShopCategory;
-import com.andrei1058.bedwars.shop.main.ShopIndex;
 import com.andrei1058.bedwars.BedWars;
 import com.andrei1058.bedwars.api.arena.shop.IContentTier;
 import com.andrei1058.bedwars.api.arena.team.ITeam;
@@ -15,12 +10,10 @@ import com.andrei1058.bedwars.configuration.Sounds;
 import com.andrei1058.bedwars.shop.ShopCache;
 import com.andrei1058.bedwars.shop.main.CategoryContent;
 import me.kiiya.hotbarmanager.HotbarManager;
-import me.kiiya.hotbarmanager.api.events.HotbarItemSetEvent;
 import me.kiiya.hotbarmanager.api.hotbar.Category;
 import me.kiiya.hotbarmanager.api.hotbar.IHotbarPlayer;
 import me.kiiya.hotbarmanager.utils.HotbarUtils;
 import me.kiiya.hotbarmanager.utils.Utility;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -104,7 +97,7 @@ public class ShopBuy implements Listener {
 
                 // 处理物品替换/堆叠
                 if (!slotEmpty) {
-                    if (handleItemReplacement(p, inv, i, item, itemSlot, vs, identifier, cc)) {
+                    if(handleItemReplacement(p, inv, i, item, itemSlot, vs, identifier, cat)){
                         completePurchase(p, cc, cache, item, currency, price, totalPlayerMoney, identifier,inv);
                         e.setCancelled(true);
                         return;
@@ -149,8 +142,7 @@ public class ShopBuy implements Listener {
     }
 
     private boolean handleItemReplacement(Player p, PlayerInventory inv, int slot, ItemStack newItem,
-                                          ItemStack oldItem, VersionSupport vs, String identifier,
-                                          CategoryContent cc) {
+                                          ItemStack oldItem, VersionSupport vs, String identifier, Category cc) {
         // 相同identifier替换
         if (vs.getShopUpgradeIdentifier(oldItem) != null &&
                 vs.getShopUpgradeIdentifier(oldItem).equals(identifier)) {
@@ -172,6 +164,9 @@ public class ShopBuy implements Listener {
             }
             p.updateInventory();
             return true;
+        }
+        if (Utility.getItemCategory(oldItem) != cc) {
+            return false;
         }
         inv.setItem(slot, newItem);
         inv.addItem(oldItem);
