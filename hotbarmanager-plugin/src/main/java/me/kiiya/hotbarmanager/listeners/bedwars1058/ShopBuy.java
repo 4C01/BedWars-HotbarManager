@@ -71,8 +71,13 @@ public class ShopBuy implements Listener {
                     .orElse(null);
             List<UUID> indexViewers = ShopIndex.getIndexViewers();
 
+            if (indexViewers.contains(p.getUniqueId()) && element != null) cache.upgradeCachedItem(cc, element.getSlot());
+            else cache.upgradeCachedItem(cc, cc.getSlot());ShopCache.CachedItem cachedItem = cache.getCachedItem(cc);
 
-
+            if (cachedItem == null) {
+                debug("CachedItem is null for " + identifier);
+                return;
+            }
 
             // item slots processing
             for (int i = 0; i < 9; i++) {
@@ -87,13 +92,6 @@ public class ShopBuy implements Listener {
                 ItemStack itemSlot = inv.getItem(i);
                 boolean slotEmpty = itemSlot == null || itemSlot.getType() == Material.AIR;
 
-                if (indexViewers.contains(p.getUniqueId()) && element != null) cache.upgradeCachedItem(cc, element.getSlot());
-                else cache.upgradeCachedItem(cc, cc.getSlot());ShopCache.CachedItem cachedItem = cache.getCachedItem(cc);
-
-                if (cachedItem == null) {
-                    debug("CachedItem is null for " + identifier);
-                    return;
-                }
                 IContentTier upgradableContent = cc.getContentTiers().get(cachedItem.getTier()-1);
                 ItemStack item = Utility.formatItemStack(upgradableContent.getBuyItemsList().get(0).getItemStack(), t);
 
